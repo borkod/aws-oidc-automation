@@ -17,13 +17,17 @@
         "go.useLanguageServer": true,
         "go.gopath": "/go",
         "go.formatTool": "gofmt",
-        "go.lintTool": "golangci-lint"
+        "go.lintTool": "golangci-lint",
+        "markdown.marp.themes": [
+          "https://raw.githubusercontent.com/mastern2k3/marpit-nord-theme/master/build/nord-theme.css",
+        ]
       },
       "extensions": [
         "golang.go",
         "GitHub.copilot",
         "github.copilot-chat",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "marp-team.marp-vscode"
       ]
     }
   },

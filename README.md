@@ -57,3 +57,25 @@ Entra ID also supports advanced governance and security features such as Conditi
 
 Furthermore, Entra ID supports the registration of external applications, allowing developers to configure OIDC clients for secure, standards-based authentication across environments.
 
+## Issues with Manual Setup
+
+### Challenges of Manual Setup in Enterprise Environments
+
+Manually configuring identity federation between AWS and Microsoft Entra ID can introduce several risks in enterprise settings.
+
+- manual setup often leads to inconsistencies, especially when multiple individuals are involved. Each person may take a slightly different approach, resulting in misaligned configurations that can violate enterprise security policies and compliance requirements. In regulated industries, this lack of standardization can have serious consequences.
+- the process requires elevated access privileges across both AWS and Entra ID. Granting broad permissions for manual tasks increases the risk of accidental misconfigurations or, worse, exposure of sensitive resources—creating a significant security risk.
+- Another common hurdle is the depth of expertise required. Setting up a secure and reliable federation between these platforms demands a strong understanding of both AWS IAM and Entra ID’s identity and access management features. Many organizations struggle with this due to limited in-house expertise or competing priorities within their IT teams.
+- Finally, it’s important to recognize that manual configuration is inherently error-prone. A missed setting, incorrect permission, or misapplied policy can lead to hours of troubleshooting—or a costly security gap.
+
+For these reasons, automation and standardized tooling are strongly recommended when integrating identity providers in enterprise-scale cloud environments.
+
+### The Need for Automation at Scale
+
+In enterprise environments, it's common to manage dozens—or even hundreds—of AWS accounts. These accounts are often segmented by function—such as logging, networking, or security—and distributed across various business units, each maintaining its own set of accounts.
+
+To further complicate things, most organizations separate development, testing, and production environments into individual AWS accounts for better isolation and governance. Temporary or short-lived accounts are also frequently created for use cases like developer sandboxes, proof-of-concepts (POCs), or training labs.
+
+To manage this complexity, many organizations turn to solutions like AWS Control Tower, the AWS Landing Zone Accelerator (LZA), or custom-built automation pipelines. These tools allow for the programmatic creation of AWS accounts at scale, helping teams maintain consistency and control across the organization.
+
+However, simply creating accounts isn’t enough. As identity federation becomes the standard for secure access, there’s also a need to automate the setup of AWS IAM OIDC Providers in each account. Manual configuration is impractical at this scale—automation is essential to ensure that OIDC configurations are applied consistently, securely, and efficiently across all accounts.

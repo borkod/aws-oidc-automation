@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-OIDC_PROVIDER_ARN_TEMPLATE = "arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
+OIDC_PROVIDER_ARN_TEMPLATE = "arn:aws:iam::{account_id}:oidc-provider/{oidc_url}/"
 CROSS_ACCOUNT_ROLE_ARN_TEMPLATE = "arn:aws:iam::{account_id}:role/{cross_account_role_name}"
 
 def assume_role(account_id, role_name):
@@ -32,6 +32,7 @@ def update_trust_relationship(iam_client, account_id, role_name, audience, oidc_
         updated = False
         oidc_provider_arn = OIDC_PROVIDER_ARN_TEMPLATE.format(account_id=account_id, oidc_url=oidc_url)
         audience_key = f"{oidc_url}:aud"
+        audience = f"api://{audience}"
 
         for stmt in trust_policy.get("Statement", []):
             if (

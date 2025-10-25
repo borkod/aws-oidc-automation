@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-OIDC_PROVIDER_ARN_TEMPLATE = "arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
+OIDC_PROVIDER_ARN_TEMPLATE = "arn:aws:iam::{account_id}:oidc-provider/{oidc_url}/"
 CROSS_ACCOUNT_ROLE_ARN_TEMPLATE = "arn:aws:iam::{account_id}:role/{cross_account_role_name}"
 
 def assume_role(account_id, role_name):

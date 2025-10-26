@@ -116,13 +116,14 @@ func initializeGraph(graphHelper *graphhelper.GraphHelper, clientID, tenantID, c
 }
 
 func createApp(graphHelper *graphhelper.GraphHelper, name string) (string, error) {
-	app, err := graphHelper.CreateApp(name)
+	// Create both app registration and service principal
+	appID, servicePrincipalID, err := graphHelper.CreateAppWithServicePrincipal(name)
 	if err != nil {
-		log.Println("Error creating app: ", err)
+		log.Println("Error creating app with service principal: ", err)
 		return "", err
 	}
 
-	appID := *app.GetAppId()
+	log.Printf("Created app with ID: %s and service principal ID: %s", appID, servicePrincipalID)
 	return appID, nil
 }
 

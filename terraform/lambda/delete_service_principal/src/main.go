@@ -69,17 +69,14 @@ func handleRequest(ctx context.Context, event json.RawMessage) (Response, error)
 
 	appName := "aws-" + evt.Account + "-" + evt.RoleName
 
-	appID, err := graphHelper.GetApp(appName)
+	// Delete both the service principal and app registration
+	appID, err := graphHelper.DeleteAppWithServicePrincipal(appName)
 	if err != nil {
-		log.Println("Error getting app:", err)
+		log.Println("Error deleting app with service principal:", err)
 		return Response{StatusCode: 500}, err
 	}
 
-	err = graphHelper.DeleteApp(appName)
-	if err != nil {
-		log.Println("Error deleting app:", err)
-		return Response{StatusCode: 500}, err
-	}
+	log.Printf("Deleted app and service principal for app ID: %s", appID)
 
 	return Response{
 		StatusCode: 200,

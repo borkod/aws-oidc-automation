@@ -11,6 +11,7 @@ import (
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/microsoftgraph/msgraph-sdk-go/applications"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/serviceprincipals"
 	"github.com/microsoftgraph/msgraph-sdk-go/users"
 )
 
@@ -115,6 +116,48 @@ func (g *GraphHelper) CreateApp(name string) (models.Applicationable, error) {
 	return applications, nil
 }
 
+// CreateServicePrincipal creates a service principal for the given app ID
+func (g *GraphHelper) CreateServicePrincipal(appId string) (models.ServicePrincipalable, error) {
+	requestBody := models.NewServicePrincipal()
+	requestBody.SetAppId(&appId)
+
+	servicePrincipal, err := g.appClient.ServicePrincipals().
+		Post(context.Background(), requestBody, nil)
+	if err != nil {
+		return nil, err
+	}
+	return servicePrincipal, nil
+}
+
+// CreateAppWithServicePrincipal creates both an app registration and its service principal
+func (g *GraphHelper) CreateAppWithServicePrincipal(name string) (appId string, servicePrincipalId string, err error) {
+	// First, create the application registration
+	app, err := g.CreateApp(name)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to create app: %w", err)
+	}
+
+	appIdPtr := app.GetAppId()
+	if appIdPtr == nil {
+		return "", "", fmt.Errorf("app ID is nil after creation")
+	}
+	appId = *appIdPtr
+
+	// Then, create the service principal for this app
+	sp, err := g.CreateServicePrincipal(appId)
+	if err != nil {
+		return appId, "", fmt.Errorf("failed to create service principal for app %s: %w", appId, err)
+	}
+
+	spIdPtr := sp.GetId()
+	if spIdPtr == nil {
+		return appId, "", fmt.Errorf("service principal ID is nil after creation")
+	}
+	servicePrincipalId = *spIdPtr
+
+	return appId, servicePrincipalId, nil
+}
+
 func (g *GraphHelper) DeleteApp(name string) error {
 	headers := abstractions.NewRequestHeaders()
 	headers.Add("ConsistencyLevel", "eventual")
@@ -160,6 +203,78 @@ func (g *GraphHelper) DeleteApp(name string) error {
 		return err
 	}
 	return nil
+}
+
+// GetServicePrincipalByAppId retrieves a service principal by app ID
+func (g *GraphHelper) GetServicePrincipalByAppId(appId string) (models.ServicePrincipalable, error) {
+	filter := fmt.Sprintf("appId eq '%s'", appId)
+	requestParameters := &serviceprincipals.ServicePrincipalsRequestBuilderGetQueryParameters{
+		Filter: &filter,
+		Select: []string{"id", "appId", "displayName"},
+	}
+	configuration := &serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration{
+		QueryParameters: requestParameters,
+	}
+
+	spResponse, err := g.appClient.ServicePrincipals().Get(context.Background(), configuration)
+	if err != nil {
+		return nil, err
+	}
+
+	sps := spResponse.GetValue()
+	if len(sps) == 0 {
+		return nil, fmt.Errorf("no service principal found for app ID %s", appId)
+	}
+
+	if len(sps) > 1 {
+		return nil, fmt.Errorf("multiple service principals found for app ID %s", appId)
+	}
+
+	return sps[0], nil
+}
+
+// DeleteServicePrincipalByAppId deletes a service principal by app ID
+func (g *GraphHelper) DeleteServicePrincipalByAppId(appId string) error {
+	sp, err := g.GetServicePrincipalByAppId(appId)
+	if err != nil {
+		return err
+	}
+
+	spId := sp.GetId()
+	if spId == nil {
+		return fmt.Errorf("service principal ID is nil")
+	}
+
+	err = g.appClient.ServicePrincipals().ByServicePrincipalId(*spId).Delete(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteAppWithServicePrincipal deletes both the service principal and app registration
+func (g *GraphHelper) DeleteAppWithServicePrincipal(name string) (string, error) {
+	// First, get the app to find its appId
+	appId, err := g.GetApp(name)
+	if err != nil {
+		return "", fmt.Errorf("failed to get app: %w", err)
+	}
+
+	// Delete the service principal first (if it exists)
+	err = g.DeleteServicePrincipalByAppId(appId)
+	if err != nil {
+		// Log but don't fail if service principal deletion fails
+		fmt.Printf("Warning: failed to delete service principal for app %s: %v\n", appId, err)
+	}
+
+	// Then delete the app registration
+	err = g.DeleteApp(name)
+	if err != nil {
+		return appId, fmt.Errorf("failed to delete app: %w", err)
+	}
+
+	return appId, nil
 }
 
 func (g *GraphHelper) CheckAppExists(name string) (bool, error) {

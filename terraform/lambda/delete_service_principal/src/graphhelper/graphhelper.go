@@ -158,6 +158,61 @@ func (g *GraphHelper) CreateAppWithServicePrincipal(name string) (appId string, 
 	return appId, servicePrincipalId, nil
 }
 
+// SetApplicationIdUri sets the Application ID URI (identifier URI) for an app registration
+// This is used to "Expose an API" in the Azure Portal
+func (g *GraphHelper) SetApplicationIdUri(appId string, applicationIdUri string) error {
+	// Get the application's object ID first
+	filter := fmt.Sprintf("appId eq '%s'", appId)
+	requestParameters := &applications.ApplicationsRequestBuilderGetQueryParameters{
+		Filter: &filter,
+		Select: []string{"id", "appId", "identifierUris"},
+	}
+	configuration := &applications.ApplicationsRequestBuilderGetRequestConfiguration{
+		QueryParameters: requestParameters,
+	}
+
+	appsResponse, err := g.appClient.Applications().Get(context.Background(), configuration)
+	if err != nil {
+		return fmt.Errorf("failed to get application: %w", err)
+	}
+
+	apps := appsResponse.GetValue()
+	if len(apps) == 0 {
+		return fmt.Errorf("no application found with app ID %s", appId)
+	}
+
+	if len(apps) > 1 {
+		return fmt.Errorf("multiple applications found with app ID %s", appId)
+	}
+
+	objectId := apps[0].GetId()
+	if objectId == nil {
+		return fmt.Errorf("application object ID is nil")
+	}
+
+	// Update the application with the identifier URI
+	requestBody := models.NewApplication()
+	identifierUris := []string{applicationIdUri}
+	requestBody.SetIdentifierUris(identifierUris)
+
+	_, err = g.appClient.Applications().ByApplicationId(*objectId).Patch(context.Background(), requestBody, nil)
+	if err != nil {
+		return fmt.Errorf("failed to update application ID URI: %w", err)
+	}
+
+	return nil
+}
+
+// SetApplicationIdUriByName sets the Application ID URI for an app registration by name
+func (g *GraphHelper) SetApplicationIdUriByName(name string, applicationIdUri string) error {
+	appId, err := g.GetApp(name)
+	if err != nil {
+		return fmt.Errorf("failed to get app: %w", err)
+	}
+
+	return g.SetApplicationIdUri(appId, applicationIdUri)
+}
+
 func (g *GraphHelper) DeleteApp(name string) error {
 	headers := abstractions.NewRequestHeaders()
 	headers.Add("ConsistencyLevel", "eventual")

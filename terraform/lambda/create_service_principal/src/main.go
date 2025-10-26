@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -121,6 +122,13 @@ func createApp(graphHelper *graphhelper.GraphHelper, name string) (string, error
 	if err != nil {
 		log.Println("Error creating app with service principal: ", err)
 		return "", err
+	}
+
+	applicationIdUri := fmt.Sprintf("api://%s", appID)
+
+	err = graphHelper.SetApplicationIdUri(appID, applicationIdUri)
+	if err != nil {
+		log.Printf("Failed to set Application ID URI: %v", err)
 	}
 
 	log.Printf("Created app with ID: %s and service principal ID: %s", appID, servicePrincipalID)

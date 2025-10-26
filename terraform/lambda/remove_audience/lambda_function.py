@@ -43,6 +43,7 @@ def lambda_handler(event, context):
     sfn_param = event.get("sfnParam", {})
     account_id = sfn_param.get("account")
     audience = event.get("audience")
+    audience = f"api://{audience}"
     oidc_url = os.environ.get("OIDC_URL")
     role_name = os.environ.get("CROSS_ACCOUNT_ROLE_NAME")
 

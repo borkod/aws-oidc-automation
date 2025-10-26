@@ -32,6 +32,7 @@ def update_trust_relationship(iam_client, account_id, role_name, audience, oidc_
         updated = False
         oidc_provider_arn = OIDC_PROVIDER_ARN_TEMPLATE.format(account_id=account_id, oidc_url=oidc_url)
         audience_key = f"{oidc_url}:aud"
+        audience = f"api://{audience}"
 
         for stmt in trust_policy.get("Statement", []):
             if (

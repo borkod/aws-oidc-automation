@@ -117,7 +117,10 @@ Policy templates are located in the `policy/` directory and use Terraform's `tem
 **Architecture:** ARM64  
 **Handler:** `bootstrap`
 
-**Purpose:** Creates an application registration in Microsoft Entra ID.
+**Purpose:**
+- Creates an application registration in Microsoft Entra ID.
+- Creates service principal for the application registration.
+- Sets the application registration URI to expose an API.
 
 **Key Logic:**
 - Authenticates to Microsoft Graph API using client credentials flow
@@ -332,7 +335,7 @@ aws_org_id                     = "o-xxxxxxxxxx"
 # Entra ID Configuration
 client_id                      = "your-entra-client-id"
 tenant_id                      = "your-tenant-id"
-oidc_url                       = "sts.windows.net/your-tenant-id"
+oidc_url                       = "sts.windows.net/your-tenant-id/"
 client_secret                  = "your-client-secret"
 
 # Optional: Override default resource names
